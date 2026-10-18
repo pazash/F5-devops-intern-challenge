@@ -111,5 +111,5 @@ So I ignored his changes to not insert complex and unknown configuration changes
 ## 3. Anything in your submission you could not fully explain?
 
 We would rather know. Write "nothing" if that is the case.
-nothing
-> ...
+
+> nothing
