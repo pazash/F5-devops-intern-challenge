@@ -81,6 +81,7 @@ the error is that test runner runs before the backend container starts listening
 
 
 please make a research and tell me what are the ways to make the test-runner wait until the backend starts listening`
+
 2. `I am writing a dockerfile for a minimal nginx server that will act as reverse proxy.
 
 please search online and docker hub and research what should be the minimal and optimal base image for such server.
@@ -88,6 +89,7 @@ please search online and docker hub and research what should be the minimal and 
 I saw online alpine and scratch are minimal base image.
 
 What is the optimal one?`
+
 3. `give me a way to make sure that the container runs as non root user. is there a command to see which user is the docker container runs from?`
 
 ---
