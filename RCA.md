@@ -73,6 +73,7 @@ I tried to run independently docker compose up to inspect the backend and proxy 
 I saw that I get the connection refused error from test-runner before I get "Backend listening on port 8080..." message from the backend.
 Looked again at the docker-compose.yml and saw dependancies that made sense.
 Advised with AI for how can I make test-runner wait until the backend starts listening and it suggested to add healthchecks to make the dependent services wait until the backend /health returns code 200 (instead for just waiting for the container to start).
+Entered: https://docs.docker.com/compose/how-tos/startup-order/ to make sure the AI suggestion make sense and is supported by docker.
 After I configured the healthcheck I got another problem that I saw that the backend was listening but still the healthchecks fail.
 I Asked the AI for a command so I can see the logs from the healthcheks.
 Then I used:  docker inspect --format "{{json .State.Health}}" and saw that the problem was that alpine image doesn't have curl command for the healthcheck.
@@ -92,21 +93,50 @@ I chose this over other alternatives (like just making test-runner wait for few 
 ## Defect 4: CI pipeline fails
 
 ### Symptom / error output
+(I am not sure if this is the intended error because the pipeline was successful when I pushed my changes, I answer according to the error in the initial commit failed pipeline that I solved).
+line 1: ./scripts/run-tests.sh: Permission denied
 
 ### How I diagnosed it
+I ran ls -l on the scripts folder and saw that indeed run-tests.sh missed the execute permissions.
 
 ### Root cause
+No execute permissions for run-tests.sh
 
 ### Fix
+I added the neccessary permission by running chmod u+x scripts/run-tests.sh
 
 ---
 
 ## Bonus questions
 
 Optional. Answer only the ones you got to — number them, skip the rest.
+1. Reducing the proxy image size:
+initial size: 443MB.
+I removed the unnessary package installment of git, htop and vim.
+This by itself made the image size: 223MB.
+Searched for a minimal base image that would work best for our nginx server.
+With the help of AI I decided for nginx:alpine as base image because it's official image and most convenient yet minimal.
+I removed the installation commands totally.
+Now the image size is: 102MB.
+It is still not that minimal and I wanted to try to make it smaller.
+I found this base image that contain no shell at all so it is by far minimal: cgr.dev/chainguard/nginx:latest
+I had to adapt nginx.conf and docker-compose.yml to switch to port 8080 instead of port 80.
+Also for the healthcheck, I decided it is important enough to include wget although the extra space and switched for wget healthcheck instead of curl.
+Final image size: 31.3MB
 
+2. Making the proxy run as non-root user:
+Fortunatly, The minimal base image I chose is already running as non-root user.
+All I was left to do is to make sure that nginx is indeed ran as non-root user.
+I ran docker top and the uid of the process user was a non-root user as wanted.
+
+3. Additional improvements:
+The base image I chose is very secure because it doesn't have shell and run as non-root user.
+The last imporvement I made (not for the proxy image though) is to delete the publically open port 8080 for the backend so it won't be accessible from the public network and just the proxy could access it.
 >
 
 ---
 
 ## Anything you would do differently with more time
+In the last part, I wanted to optimize the proxy image for being production ready and change the base image tag to some constant stable tag.
+But then I found out that chainguard from which I used their image open only latest for free public use.
+If I had more time I would research more about the possible base images to be able to use a non latest tag and preferably something from Dockerhub instead.
