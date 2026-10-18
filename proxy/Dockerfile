@@ -1,12 +1,11 @@
 # Proxy image inherited from the previous team.
+FROM busybox:1.36.1-uclibc AS busybox
 
-FROM ubuntu:24.04
+FROM cgr.dev/chainguard/nginx:latest
+
+COPY --from=busybox /bin/wget /usr/bin/wget
 
 COPY nginx.conf /etc/nginx/nginx.conf
 
-RUN apt-get update && \
-    apt-get install -y nginx curl htop vim git
+EXPOSE 8080
 
-EXPOSE 80
-
-CMD ["nginx", "-g", "daemon off;"]
